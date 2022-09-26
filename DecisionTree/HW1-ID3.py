@@ -137,7 +137,7 @@ with open('./bank/train.csv', 'r') as f:
         else:
             listToAdd.append(terms[3])
         listToAdd.append(terms[4])
-        if terms[5] > ages[int(len(balances)/2)]:
+        if terms[5] > balances[int(len(balances)/2)]:
             listToAdd.append('1')
         else:
             listToAdd.append('0')
@@ -147,24 +147,24 @@ with open('./bank/train.csv', 'r') as f:
             listToAdd.append('cellular')
         else:
             listToAdd.append(terms[8])
-        if terms[9] > ages[int(len(days)/2)]:
+        if terms[9] > days[int(len(days)/2)]:
             listToAdd.append('1')
         else:
             listToAdd.append('0')
         listToAdd.append(terms[10])
-        if terms[11] > ages[int(len(durations)/2)]:
+        if terms[11] > durations[int(len(durations)/2)]:
             listToAdd.append('1')
         else:
             listToAdd.append('0')
-        if terms[12] > ages[int(len(campaigns)/2)]:
+        if terms[12] > campaigns[int(len(campaigns)/2)]:
             listToAdd.append('1')
         else:
             listToAdd.append('0')
-        if terms[13] > ages[int(len(pdays)/2)]:
+        if terms[13] > pdays[int(len(pdays)/2)]:
             listToAdd.append('1')
         else:
             listToAdd.append('0')
-        if terms[14] > ages[int(len(previous)/2)]:
+        if terms[14] > previous[int(len(previous)/2)]:
             listToAdd.append('1')
         else:
             listToAdd.append('0')
@@ -223,9 +223,9 @@ def IG(S, A, labelValues):
         for example in S:
             if example[attrIndex] == value:
                 Sv.append(example)
-        sum += (len(Sv)/len(S)) * GI(Sv, labelValues)
+        sum += (len(Sv)/len(S)) * Entropy(Sv, labelValues)
 
-    return GI(S, labelValues) - sum
+    return Entropy(S, labelValues) - sum
 
 
 def ID3(S, attributes, label, depth=-1):        
@@ -313,7 +313,7 @@ with open('./bank/test.csv', 'r') as f:
         else:
             listToAdd.append(terms[3])
         listToAdd.append(terms[4])
-        if terms[5] > ages[int(len(balances)/2)]:
+        if terms[5] > balances[int(len(balances)/2)]:
             listToAdd.append('1')
         else:
             listToAdd.append('0')
@@ -323,24 +323,24 @@ with open('./bank/test.csv', 'r') as f:
             listToAdd.append('cellular')
         else:
             listToAdd.append(terms[8])
-        if terms[9] > ages[int(len(days)/2)]:
+        if terms[9] > days[int(len(days)/2)]:
             listToAdd.append('1')
         else:
             listToAdd.append('0')
         listToAdd.append(terms[10])
-        if terms[11] > ages[int(len(durations)/2)]:
+        if terms[11] > durations[int(len(durations)/2)]:
             listToAdd.append('1')
         else:
             listToAdd.append('0')
-        if terms[12] > ages[int(len(campaigns)/2)]:
+        if terms[12] > campaigns[int(len(campaigns)/2)]:
             listToAdd.append('1')
         else:
             listToAdd.append('0')
-        if terms[13] > ages[int(len(pdays)/2)]:
+        if terms[13] > pdays[int(len(pdays)/2)]:
             listToAdd.append('1')
         else:
             listToAdd.append('0')
-        if terms[14] > ages[int(len(previous)/2)]:
+        if terms[14] > previous[int(len(previous)/2)]:
             listToAdd.append('1')
         else:
             listToAdd.append('0')
