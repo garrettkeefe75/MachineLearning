@@ -32,6 +32,30 @@ class node:
         return self.nextNodes.get(example[self.attributeIndex]).testExample(example)
 
 
+def restoreUnknown(listToAdd, terms, index, attr):
+    if terms[index] == 'unknown':
+        listToAdd.append(attr)
+    else:
+        listToAdd.append(terms[index])
+
+def numericBoolean(listToAdd, terms, index, sortedSet):
+    if terms[index] > sortedSet[int(len(sortedSet)/2)]:
+        listToAdd.append('1')
+    else:
+        listToAdd.append('0')
+
+def mostCommonLabel(S, label):
+    mostCommonValue = None
+    mostCommonValueOccurence = 0
+    for value in label:
+        i = 0
+        for example in S:
+            if example[len(example)-1] == value:
+                i += 1
+        if i > mostCommonValueOccurence:
+            mostCommonValueOccurence = i
+            mostCommonValue = value
+    return mostCommonValue
 
 exampleSet1 = []
 attributes1 = {"x1": (0, ['0', '1']), "x2": (1, ['0', '1']),
@@ -123,55 +147,22 @@ with open('./bank/train.csv', 'r') as f:
     for line in f:
         listToAdd = []
         terms = line.strip().split(',')
-        if terms[0] > ages[int(len(ages)/2)]:
-            listToAdd.append('1')
-        else:
-            listToAdd.append('0')
-        if terms[1] == 'unknown':
-            listToAdd.append('blue-collar')
-        else:
-            listToAdd.append(terms[1])
+        numericBoolean(listToAdd, terms, 0, ages)
+        restoreUnknown(listToAdd, terms, 1, 'blue-collar')
         listToAdd.append(terms[2])
-        if terms[3] == 'unknown':
-            listToAdd.append('secondary')
-        else:
-            listToAdd.append(terms[3])
+        restoreUnknown(listToAdd, terms, 3, 'secondary')
         listToAdd.append(terms[4])
-        if terms[5] > balances[int(len(balances)/2)]:
-            listToAdd.append('1')
-        else:
-            listToAdd.append('0')
+        numericBoolean(listToAdd, terms, 5, balances)
         listToAdd.append(terms[6])
         listToAdd.append(terms[7])
-        if terms[8] == 'unknown':
-            listToAdd.append('cellular')
-        else:
-            listToAdd.append(terms[8])
-        if terms[9] > days[int(len(days)/2)]:
-            listToAdd.append('1')
-        else:
-            listToAdd.append('0')
+        restoreUnknown(listToAdd, terms, 8, 'cellular')
+        numericBoolean(listToAdd, terms, 9, days)
         listToAdd.append(terms[10])
-        if terms[11] > durations[int(len(durations)/2)]:
-            listToAdd.append('1')
-        else:
-            listToAdd.append('0')
-        if terms[12] > campaigns[int(len(campaigns)/2)]:
-            listToAdd.append('1')
-        else:
-            listToAdd.append('0')
-        if terms[13] > pdays[int(len(pdays)/2)]:
-            listToAdd.append('1')
-        else:
-            listToAdd.append('0')
-        if terms[14] > previous[int(len(previous)/2)]:
-            listToAdd.append('1')
-        else:
-            listToAdd.append('0')
-        if terms[15] == 'unknown':
-            listToAdd.append('failure')
-        else:
-            listToAdd.append(terms[15])
+        numericBoolean(listToAdd, terms, 11, durations)
+        numericBoolean(listToAdd, terms, 12, campaigns)
+        numericBoolean(listToAdd, terms, 13, pdays)
+        numericBoolean(listToAdd, terms, 14, previous)
+        restoreUnknown(listToAdd, terms, 15, 'failure')
         listToAdd.append(terms[16])
         exampleSet4.append(listToAdd)
 
@@ -252,17 +243,7 @@ def ID3(S, attributes, label, depth=-1):
             A = key
     
     if A == None or depth == 0:
-        mostCommonValue = None
-        mostCommonValueOccurence = 0
-        for value in label:
-            i = 0
-            for example in S:
-                if example[len(example)-1] == value:
-                    i += 1
-            if i > mostCommonValueOccurence:
-                mostCommonValueOccurence = i
-                mostCommonValue = value
-        root.setAttribute(mostCommonValue)
+        root.setAttribute(mostCommonLabel(S, label))
         return root
 
     attrIndex, values = attributes.get(A)
@@ -274,18 +255,8 @@ def ID3(S, attributes, label, depth=-1):
             if example[attrIndex] == value:
                 Sv.append(example)
         if len(Sv) == 0:
-            mostCommonValue = None
-            mostCommonValueOccurence = 0
-            for value2 in label:
-                i = 0
-                for example in S:
-                    if example[len(example)-1] == value2:
-                        i += 1
-                if i > mostCommonValueOccurence:
-                    mostCommonValueOccurence = i
-                    mostCommonValue = value2
             leaf = node()
-            leaf.setAttribute(mostCommonValue)
+            leaf.setAttribute(mostCommonLabel(S, label))
             root.append(value, leaf)
         else:
             attributeCopy = attributes.copy()
@@ -299,55 +270,22 @@ with open('./bank/test.csv', 'r') as f:
     for line in f:
         listToAdd = []
         terms = line.strip().split(',')
-        if terms[0] > ages[int(len(ages)/2)]:
-            listToAdd.append('1')
-        else:
-            listToAdd.append('0')
-        if terms[1] == 'unknown':
-            listToAdd.append('blue-collar')
-        else:
-            listToAdd.append(terms[1])
+        numericBoolean(listToAdd, terms, 0, ages)
+        restoreUnknown(listToAdd, terms, 1, 'blue-collar')
         listToAdd.append(terms[2])
-        if terms[3] == 'unknown':
-            listToAdd.append('secondary')
-        else:
-            listToAdd.append(terms[3])
+        restoreUnknown(listToAdd, terms, 3, 'secondary')
         listToAdd.append(terms[4])
-        if terms[5] > balances[int(len(balances)/2)]:
-            listToAdd.append('1')
-        else:
-            listToAdd.append('0')
+        numericBoolean(listToAdd, terms, 5, balances)
         listToAdd.append(terms[6])
         listToAdd.append(terms[7])
-        if terms[8] == 'unknown':
-            listToAdd.append('cellular')
-        else:
-            listToAdd.append(terms[8])
-        if terms[9] > days[int(len(days)/2)]:
-            listToAdd.append('1')
-        else:
-            listToAdd.append('0')
+        restoreUnknown(listToAdd, terms, 8, 'cellular')
+        numericBoolean(listToAdd, terms, 9, days)
         listToAdd.append(terms[10])
-        if terms[11] > durations[int(len(durations)/2)]:
-            listToAdd.append('1')
-        else:
-            listToAdd.append('0')
-        if terms[12] > campaigns[int(len(campaigns)/2)]:
-            listToAdd.append('1')
-        else:
-            listToAdd.append('0')
-        if terms[13] > pdays[int(len(pdays)/2)]:
-            listToAdd.append('1')
-        else:
-            listToAdd.append('0')
-        if terms[14] > previous[int(len(previous)/2)]:
-            listToAdd.append('1')
-        else:
-            listToAdd.append('0')
-        if terms[15] == 'unknown':
-            listToAdd.append('failure')
-        else:
-            listToAdd.append(terms[15])
+        numericBoolean(listToAdd, terms, 11, durations)
+        numericBoolean(listToAdd, terms, 12, campaigns)
+        numericBoolean(listToAdd, terms, 13, pdays)
+        numericBoolean(listToAdd, terms, 14, previous)
+        restoreUnknown(listToAdd, terms, 15, 'failure')
         listToAdd.append(terms[16])
         testData.append(listToAdd)
 
