@@ -205,7 +205,7 @@ def GI(S, labelValues):
         sum += p*p
     return 1 - sum
 
-def IG(S, A, labelValues):
+def IG(S, A, labelValues, variation):
     attrIndex, values = A
     sum = 0
     for value in values:
@@ -214,12 +214,23 @@ def IG(S, A, labelValues):
         for example in S:
             if example[attrIndex] == value:
                 Sv.append(example)
-        sum += (len(Sv)/len(S)) * Entropy(Sv, labelValues)
+        if variation == "ME":
+            sum += (len(Sv)/len(S)) * ME(Sv, labelValues)
+        elif variation == "GI":
+            sum += (len(Sv)/len(S)) * GI(Sv, labelValues)
+        else: 
+            sum += (len(Sv)/len(S)) * Entropy(Sv, labelValues)
+        
 
-    return Entropy(S, labelValues) - sum
+    if variation == "ME":
+        return ME(S, labelValues) - sum
+    elif variation == "GI":
+        return GI(S, labelValues) - sum
+    else:
+        return Entropy(S, labelValues) - sum
 
 
-def ID3(S, attributes, label, depth=-1):        
+def ID3(S, attributes, label, depth=-1, variation="Entropy"):  
     root = node()
     testLabel = S[0][len(S[0])-1]
     allLabelsSame = True
@@ -236,7 +247,7 @@ def ID3(S, attributes, label, depth=-1):
     A = None
     for key in attributes.keys():
         index, values = attributes.get(key)
-        infoGain = IG(S, (index, values), label)
+        infoGain = IG(S, (index, values), label, variation)
         #print(f"{key} : {infoGain}")
         if infoGain > bestInfoGain:
             bestInfoGain = infoGain
@@ -261,7 +272,7 @@ def ID3(S, attributes, label, depth=-1):
         else:
             attributeCopy = attributes.copy()
             del attributeCopy[A]
-            root.append(value, ID3(Sv, attributeCopy, label, depth-1))
+            root.append(value, ID3(Sv, attributeCopy, label, depth-1, variation))
 
     return root
 
@@ -290,7 +301,7 @@ with open('./bank/test.csv', 'r') as f:
         testData.append(listToAdd)
 
 for i in range(16):
-    root = ID3(exampleSet4, attributes4, label4, i)
+    root = ID3(exampleSet4, attributes4, label4, i, "en")
     successes = 0
     fails = 0
     for example in testData:
