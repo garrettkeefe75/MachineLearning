@@ -13,6 +13,14 @@ def restoreUnknown(listToAdd, terms, index, attr):
     else:
         listToAdd.append(terms[index])
 
+def useEnsemble(Ensemble, example):
+    guess = 0
+    for vote, root in Ensemble:
+        guess += vote * root.getExampleGuess(example)
+    if guess >= 0: guess = 1 
+    else: guess = -1
+    return guess
+
 
 def numericBoolean(listToAdd, terms, index, sortedSet):
     if terms[index] > sortedSet[int(len(sortedSet)/2)]:
@@ -125,7 +133,10 @@ with open('../DecisionTree/bank/test.csv', 'r') as f:
         testData.append(listToAdd)
 
 weights = [1/len(exampleSet4)]*len(exampleSet4)
-T = 5
+if len(sys.argv) >= 2:
+    T = int(sys.argv[1])
+else:
+    T = 5
 H = [0] * len(exampleSet4)
 Ensemble = []
 
@@ -138,7 +149,7 @@ for inc in range(T):
             err += weights[i]
         i += 1
     vote = 1/2 * math.log((1-err)/err)
-    # root.printNode()
+    #root.printNode()
     #print(vote)
     weightCopy = []
     Hcopy = []
@@ -161,14 +172,7 @@ successes = 0
 fails = 0
 i = 0
 for example in testData:
-    guess = 0
-    for vote, root in Ensemble:
-        guess += vote * root.getExampleGuess(example)
-    if guess >= 0:
-        guess = 1 
-    else:
-        guess = -1
-    if example[len(example)-1] == guess:
+    if example[len(example)-1] == useEnsemble(Ensemble, example):
         successes += 1
     else:
         fails += 1
@@ -177,4 +181,5 @@ for example in testData:
 print(f"Error Rate: {fails/(successes+fails)}")
 
 end = time.time()
+#root = ID3.ID3(exampleSet4, attributes4, label4, 2, "Entropy")
 print(f"Time to run {end - strt}")
