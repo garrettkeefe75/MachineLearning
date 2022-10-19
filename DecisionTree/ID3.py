@@ -16,7 +16,7 @@ class node:
     def printNode(self, depth=0):
         thing = '|'*depth
         thing2 = '>'*(depth+1)
-        print(thing + self.attribute)
+        print(thing + str(self.attribute))
         for key in self.nextNodes.keys():
             #print(thing2+key)
             self.nextNodes.get(key).printNode(depth+1)
@@ -29,6 +29,11 @@ class node:
             else:
                 return False
         return self.nextNodes.get(example[self.attributeIndex]).testExample(example)
+
+    def getExampleGuess(self, example):
+        if self.attributeIndex == -1:
+            return self.attribute
+        return self.nextNodes.get(example[self.attributeIndex]).getExampleGuess(example)
 
 def mostCommonLabel(S, label):
     mostCommonValue = None
