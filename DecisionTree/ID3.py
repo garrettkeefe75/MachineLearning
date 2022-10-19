@@ -15,25 +15,25 @@ class node:
 
     def printNode(self, depth=0):
         thing = '|'*depth
-        thing2 = '>'*(depth+1)
         print(thing + str(self.attribute))
         for key in self.nextNodes.keys():
-            #print(thing2+key)
             self.nextNodes.get(key).printNode(depth+1)
 
     def testExample(self, example):
         #print(f"attribute: {self.attribute} branches: {self.nextNodes.keys()} target: {example[self.attributeIndex]}")
-        if self.attributeIndex == -1:
-            if example[len(example)-1] == self.attribute:
-                return True
-            else:
-                return False
-        return self.nextNodes.get(example[self.attributeIndex]).testExample(example)
+        n = self
+        while n.attributeIndex != -1:
+            n = n.nextNodes.get(example[n.attributeIndex])
+        if example[len(example)-1] == n.attribute:
+            return True
+        else:
+            return False
 
     def getExampleGuess(self, example):
-        if self.attributeIndex == -1:
-            return self.attribute
-        return self.nextNodes.get(example[self.attributeIndex]).getExampleGuess(example)
+        n = self
+        while n.attributeIndex != -1:
+            n = n.nextNodes.get(example[n.attributeIndex])
+        return n.attribute
 
 def mostCommonLabel(S, label):
     mostCommonValue = None
@@ -132,6 +132,10 @@ def ID3(S, attributes, label, depth=-1, variation="Entropy", weights=None):
     if allLabelsSame:
         root.setAttribute(testLabel)
         return root
+    
+    if depth == 0:
+        root.setAttribute(mostCommonLabel(S, label))
+        return root
 
     bestInfoGain = 0
     A = None
@@ -143,7 +147,7 @@ def ID3(S, attributes, label, depth=-1, variation="Entropy", weights=None):
             bestInfoGain = infoGain
             A = key
     
-    if A == None or depth == 0:
+    if A == None:
         root.setAttribute(mostCommonLabel(S, label))
         return root
 

@@ -3,6 +3,8 @@ import math
 import numpy
 sys.path.insert(0, "..")
 import DecisionTree.ID3 as ID3
+import time
+strt =time.time()
 
 
 def restoreUnknown(listToAdd, terms, index, attr):
@@ -100,29 +102,34 @@ with open('../DecisionTree/bank/test.csv', 'r') as f:
         listToAdd = []
         terms = line.strip().split(',')
         numericBoolean(listToAdd, terms, 0, ages)
-        restoreUnknown(listToAdd, terms, 1, 'blue-collar')
+        # restoreUnknown(listToAdd, terms, 1, 'blue-collar')
+        listToAdd.append(terms[1])
         listToAdd.append(terms[2])
-        restoreUnknown(listToAdd, terms, 3, 'secondary')
+        # restoreUnknown(listToAdd, terms, 3, 'secondary')
+        listToAdd.append(terms[3])
         listToAdd.append(terms[4])
         numericBoolean(listToAdd, terms, 5, balances)
         listToAdd.append(terms[6])
         listToAdd.append(terms[7])
-        restoreUnknown(listToAdd, terms, 8, 'cellular')
+        # restoreUnknown(listToAdd, terms, 8, 'cellular')
+        listToAdd.append(terms[8])
         numericBoolean(listToAdd, terms, 9, days)
         listToAdd.append(terms[10])
         numericBoolean(listToAdd, terms, 11, durations)
         numericBoolean(listToAdd, terms, 12, campaigns)
         numericBoolean(listToAdd, terms, 13, pdays)
         numericBoolean(listToAdd, terms, 14, previous)
-        restoreUnknown(listToAdd, terms, 15, 'failure')
-        listToAdd.append(terms[16])
+        # restoreUnknown(listToAdd, terms, 15, 'failure')
+        listToAdd.append(terms[15])
+        listToAdd.append(1 if terms[16] == 'yes' else -1)
         testData.append(listToAdd)
 
 weights = [1/len(exampleSet4)]*len(exampleSet4)
-T = 10
+T = 5
 H = [0] * len(exampleSet4)
+Ensemble = []
 
-for i in range(T):
+for inc in range(T):
     err = 0
     root = ID3.ID3(exampleSet4, attributes4, label4, 1, "Entropy", weights)
     i = 0
@@ -131,32 +138,43 @@ for i in range(T):
             err += weights[i]
         i += 1
     vote = 1/2 * math.log((1-err)/err)
-    # print(vote)
     # root.printNode()
+    #print(vote)
     weightCopy = []
     Hcopy = []
     i = 0
     for example in exampleSet4:
         h = root.getExampleGuess(example)
-        # find way to get expected value
         weightCopy.append(
             weights[i] * math.exp(-vote * example[len(example)-1]*h))
         Hcopy.append(H[i] + vote*h)
+        # if h == example[len(example) - 1]:
+        #     print(math.exp(-vote * example[len(example)-1]*h))
         i += 1
     s = sum(weightCopy)
     H = Hcopy
     weights = [float(w)/s for w in weightCopy]
-    # print(err)
+    Ensemble.append((vote, root))
 H = numpy.sign(H)
+
 successes = 0
 fails = 0
 i = 0
-for example in exampleSet4:
- 
-    if example[len(example)-1] == H[i]:
+for example in testData:
+    guess = 0
+    for vote, root in Ensemble:
+        guess += vote * root.getExampleGuess(example)
+    if guess >= 0:
+        guess = 1 
+    else:
+        guess = -1
+    if example[len(example)-1] == guess:
         successes += 1
     else:
         fails += 1
     i += 1
 
 print(f"Error Rate: {fails/(successes+fails)}")
+
+end = time.time()
+print(f"Time to run {end - strt}")
