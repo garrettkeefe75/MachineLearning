@@ -196,11 +196,15 @@ with open('../DecisionTree/bank/test.csv', 'r') as f:
 weights = [1/len(exampleSet4)]*len(exampleSet4)
 if len(sys.argv) > 2:
     T = int(sys.argv[1])
+    if T < 0:
+        T = 5
     k = int(sys.argv[2])
-    if k > len(attributes4):
+    if k > len(attributes4) or k < 0:
         k = len(attributes4)
 elif len(sys.argv) == 2:
     T = int(sys.argv[1])
+    if T < 0:
+        T = 5
     k = 2
 else:
     T = 5
