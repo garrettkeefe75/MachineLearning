@@ -64,7 +64,7 @@ def RandomForest(S, attributes, label, depth=-1, variation="Entropy", weights=No
         else:
             attributeCopy = attributes.copy()
             del attributeCopy[A]
-            root.append(value, RandomForest(Sv, attributeCopy, label, depth-1, variation, SvW))
+            root.append(value, RandomForest(Sv, attributeCopy, label, depth-1, variation, SvW, subsetSize))
     
     return root
 
@@ -194,15 +194,23 @@ with open('../DecisionTree/bank/test.csv', 'r') as f:
         testData.append(listToAdd)
 
 weights = [1/len(exampleSet4)]*len(exampleSet4)
-if len(sys.argv) >= 2:
+if len(sys.argv) > 2:
     T = int(sys.argv[1])
+    k = int(sys.argv[2])
+    if k > len(attributes4):
+        k = len(attributes4)
+elif len(sys.argv) == 2:
+    T = int(sys.argv[1])
+    k = 2
 else:
     T = 5
+    k = 2
+
 Ensemble = []
 
 for inc in range(T):
     bootstrapSamples = random.choices(exampleSet4, k=len(exampleSet4))
-    root = RandomForest(bootstrapSamples, attributes4, label4, -1, "Entropy", weights, 2)
+    root = RandomForest(bootstrapSamples, attributes4, label4, -1, "Entropy", weights, k)
     err = 0
     i = 0
     for example in exampleSet4:
