@@ -1,5 +1,6 @@
 import sys
 import math
+import random
 sys.path.insert(0, "..")
 import DecisionTree.ID3 as ID3
 import time
@@ -16,9 +17,8 @@ def useEnsemble(Ensemble, example):
     guess = 0
     for vote, root in Ensemble:
         guess += vote * root.getExampleGuess(example)
-    if guess >= 0: guess = 1 
-    else: guess = -1
-    return guess
+    guess = guess/len(Ensemble)
+    return 1 if guess >= 0 else -1
 
 
 def numericBoolean(listToAdd, terms, index, sortedSet):
@@ -139,7 +139,8 @@ else:
 Ensemble = []
 
 for inc in range(T):
-    root = ID3.ID3(exampleSet4, attributes4, label4, 1, "Entropy", weights)
+    bootstrapSamples = random.choices(exampleSet4, k=len(exampleSet4))
+    root = ID3.ID3(bootstrapSamples, attributes4, label4, -1, "Entropy", weights)
     err = 0
     i = 0
     for example in exampleSet4:
@@ -147,17 +148,6 @@ for inc in range(T):
             err += weights[i]
         i += 1
     vote = 1/2 * math.log((1-err)/err)
-    #root.printNode()
-    #print(vote)
-    weightCopy = []
-    i = 0
-    for example in exampleSet4:
-        h = root.getExampleGuess(example)
-        weightCopy.append(
-            weights[i] * math.exp(-vote * example[len(example)-1]*h))
-        i += 1
-    s = sum(weightCopy)
-    weights = [float(w)/s for w in weightCopy]
     Ensemble.append((vote, root))
 
 successes = 0
@@ -173,5 +163,4 @@ for example in testData:
 print(f"Error Rate: {fails/(successes+fails)}")
 
 end = time.time()
-#root = ID3.ID3(exampleSet4, attributes4, label4, 2, "Entropy")
 print(f"Time to run {end - strt}")

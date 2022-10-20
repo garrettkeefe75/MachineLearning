@@ -1,9 +1,72 @@
 import sys
 import math
+import random
 sys.path.insert(0, "..")
 import DecisionTree.ID3 as ID3
 import time
 strt =time.time()
+
+
+def RandomForest(S, attributes, label, depth=-1, variation="Entropy", weights=None, subsetSize=2):
+    if weights == None:
+        weights = [1/len(S)]*len(S)
+    root = ID3.node()
+    testLabel = S[0][len(S[0])-1]
+    allLabelsSame = True
+    for example in S:
+        if example[len(example)-1] != testLabel:
+            allLabelsSame = False
+            break
+
+    if allLabelsSame:
+        root.setAttribute(testLabel)
+        return root
+    
+    if depth == 0:
+        root.setAttribute(ID3.mostCommonLabel(S, label))
+        return root
+
+    attributesSubset = dict(random.sample(list(attributes4.items()), subsetSize))
+    bestInfoGain = 0
+    A = None
+    for key in attributesSubset.keys():
+        index, values = attributesSubset.get(key)
+        infoGain = ID3.IG(S, (index, values), label, variation, weights)
+        #print(f"{key} : {infoGain}")
+        if infoGain > bestInfoGain:
+            bestInfoGain = infoGain
+            A = key
+    
+    if A == None:
+        root.setAttribute(ID3.mostCommonLabel(S, label))
+        return root
+
+    attrIndex, values = attributes.get(A)
+    root.setAttribute(A, attrIndex)
+    for value in values:
+        Sv = []
+        SvWc = []
+        i = 0
+
+        for example in S:
+            if example[attrIndex] == value:
+                Sv.append(example)
+                SvWc.append(weights[i])
+            i += 1
+        SvW = []
+        for weight in SvWc:
+            SvW.append(weight * len(weights)/len(Sv))
+
+        if len(Sv) == 0:
+            leaf = ID3.node()
+            leaf.setAttribute(ID3.mostCommonLabel(S, label))
+            root.append(value, leaf)
+        else:
+            attributeCopy = attributes.copy()
+            del attributeCopy[A]
+            root.append(value, RandomForest(Sv, attributeCopy, label, depth-1, variation, SvW))
+    
+    return root
 
 
 def restoreUnknown(listToAdd, terms, index, attr):
@@ -16,9 +79,8 @@ def useEnsemble(Ensemble, example):
     guess = 0
     for vote, root in Ensemble:
         guess += vote * root.getExampleGuess(example)
-    if guess >= 0: guess = 1 
-    else: guess = -1
-    return guess
+    guess = guess/len(Ensemble)
+    return 1 if guess >= 0 else -1
 
 
 def numericBoolean(listToAdd, terms, index, sortedSet):
@@ -139,7 +201,8 @@ else:
 Ensemble = []
 
 for inc in range(T):
-    root = ID3.ID3(exampleSet4, attributes4, label4, 1, "Entropy", weights)
+    bootstrapSamples = random.choices(exampleSet4, k=len(exampleSet4))
+    root = RandomForest(bootstrapSamples, attributes4, label4, -1, "Entropy", weights, 2)
     err = 0
     i = 0
     for example in exampleSet4:
@@ -147,17 +210,6 @@ for inc in range(T):
             err += weights[i]
         i += 1
     vote = 1/2 * math.log((1-err)/err)
-    #root.printNode()
-    #print(vote)
-    weightCopy = []
-    i = 0
-    for example in exampleSet4:
-        h = root.getExampleGuess(example)
-        weightCopy.append(
-            weights[i] * math.exp(-vote * example[len(example)-1]*h))
-        i += 1
-    s = sum(weightCopy)
-    weights = [float(w)/s for w in weightCopy]
     Ensemble.append((vote, root))
 
 successes = 0
@@ -173,5 +225,4 @@ for example in testData:
 print(f"Error Rate: {fails/(successes+fails)}")
 
 end = time.time()
-#root = ID3.ID3(exampleSet4, attributes4, label4, 2, "Entropy")
 print(f"Time to run {end - strt}")
