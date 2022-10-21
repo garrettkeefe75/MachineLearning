@@ -1,4 +1,4 @@
 You can run the bath gradient descent like so
-- python .\Batch.py
+- python .\HW2-Batch.py
 And stochastic gradient descent
-- python .\Stochastic.py
+- python .\HW2-Stochastic.py
