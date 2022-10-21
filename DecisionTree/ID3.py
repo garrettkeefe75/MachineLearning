@@ -35,16 +35,18 @@ class node:
             n = n.nextNodes.get(example[n.attributeIndex])
         return n.attribute
 
-def mostCommonLabel(S, label):
+def mostCommonLabel(S, label, weights):
     mostCommonValue = None
     mostCommonValueOccurence = 0
     for value in label:
+        sum = 0
         i = 0
         for example in S:
             if example[len(example)-1] == value:
-                i += 1
-        if i > mostCommonValueOccurence:
-            mostCommonValueOccurence = i
+                sum += weights[i]
+            i += 1
+        if sum > mostCommonValueOccurence:
+            mostCommonValueOccurence = sum
             mostCommonValue = value
     return mostCommonValue
 
@@ -67,18 +69,20 @@ def Entropy(S, labelValues, weights):
     return 0-sum
 
 
-def ME(S, labelValues):
+def ME(S, labelValues, weights):
     mostCommonValueOccurence = 0
     if len(S) == 0:
         return 1
     for value in labelValues:
+        sum = 0
         i = 0
         for example in S:
             if example[len(example)-1] == value:
-                i += 1
-        if i > mostCommonValueOccurence:
-            mostCommonValueOccurence = i
-    return 1 - (mostCommonValueOccurence/len(S))
+                sum += weights[i]
+            i += 1
+        if sum > mostCommonValueOccurence:
+            mostCommonValueOccurence = sum
+    return 1 - mostCommonValueOccurence
         
 def GI(S, labelValues, weights):
     sum = 0
@@ -103,7 +107,7 @@ def IG(S, A, labelValues, variation, weights):
         for weight in SvWc:
             SvW.append(weight * len(weights)/len(Sv))
         if variation == "ME":
-            sum += (len(Sv)/len(S)) * ME(Sv, labelValues)
+            sum += (len(Sv)/len(S)) * ME(Sv, labelValues, SvW)
         elif variation == "GI":
             sum += (len(Sv)/len(S)) * GI(Sv, labelValues, SvW)
         else: 
@@ -111,7 +115,7 @@ def IG(S, A, labelValues, variation, weights):
         
 
     if variation == "ME":
-        return ME(S, labelValues) - sum
+        return ME(S, labelValues, weights) - sum
     elif variation == "GI":
         return GI(S, labelValues, weights) - sum
     else:
@@ -134,7 +138,7 @@ def ID3(S, attributes, label, depth=-1, variation="Entropy", weights=None):
         return root
     
     if depth == 0:
-        root.setAttribute(mostCommonLabel(S, label))
+        root.setAttribute(mostCommonLabel(S, label, weights))
         return root
 
     bestInfoGain = 0
@@ -148,7 +152,7 @@ def ID3(S, attributes, label, depth=-1, variation="Entropy", weights=None):
             A = key
     
     if A == None:
-        root.setAttribute(mostCommonLabel(S, label))
+        root.setAttribute(mostCommonLabel(S, label, weights))
         return root
 
     attrIndex, values = attributes.get(A)
@@ -169,7 +173,7 @@ def ID3(S, attributes, label, depth=-1, variation="Entropy", weights=None):
 
         if len(Sv) == 0:
             leaf = node()
-            leaf.setAttribute(mostCommonLabel(S, label))
+            leaf.setAttribute(mostCommonLabel(S, label, weights))
             root.append(value, leaf)
         else:
             attributeCopy = attributes.copy()
