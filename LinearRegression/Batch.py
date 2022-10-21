@@ -33,7 +33,7 @@ with open('./concrete/test.csv', 'r') as f:
 weights = np.zeros(7)
 prevWeights = None
 toleranceLevel = 10e-6
-lr = 0.0125
+lr = 0.015
 
 while True:
     prevWeights = weights
@@ -45,7 +45,7 @@ while True:
         sum += thing * subset
     gradient = -sum
     weights = weights - lr*gradient
-    #print(costFunc(weights, testData))
+    print(costFunc(weights, trainData))
 
     #if True: break
     if norm((weights - prevWeights)) < toleranceLevel: break
