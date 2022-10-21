@@ -4,8 +4,35 @@ import random
 sys.path.insert(0, "..")
 import DecisionTree.ID3 as ID3
 import time
+import csv
 strt =time.time()
 
+def getError(data, Ensemble):
+    successes = 0
+    fails = 0
+    for example in data:
+        if example[len(example)-1] == useEnsemble(Ensemble, example):
+            successes += 1
+        else:
+            fails += 1
+    return fails/(successes+fails)
+
+def getErrorFullEnsemble(data, Ensemble):
+    helper = [(0,0)]*len(Ensemble)
+    allErrorForData = []
+    for example in data:
+        i = 0
+        for guess in useFullEnsemble(Ensemble, example):
+            successes, fails = helper[i]
+            if guess == example[len(example)-1]:
+                successes += 1
+            else:
+                fails += 1
+            helper[i] = (successes, fails)
+            i += 1
+    for successes, fails in helper:
+        allErrorForData.append(fails/(fails+successes))
+    return allErrorForData
 
 def RandomForest(S, attributes, label, depth=-1, variation="Entropy", weights=None, subsetSize=2):
     if weights == None:
@@ -23,7 +50,7 @@ def RandomForest(S, attributes, label, depth=-1, variation="Entropy", weights=No
         return root
     
     if depth == 0:
-        root.setAttribute(ID3.mostCommonLabel(S, label))
+        root.setAttribute(ID3.mostCommonLabel(S, label, weights))
         return root
 
     attributesSubset = dict(random.sample(list(attributes4.items()), subsetSize))
@@ -38,7 +65,7 @@ def RandomForest(S, attributes, label, depth=-1, variation="Entropy", weights=No
             A = key
     
     if A == None:
-        root.setAttribute(ID3.mostCommonLabel(S, label))
+        root.setAttribute(ID3.mostCommonLabel(S, label, weights))
         return root
 
     attrIndex, values = attributes.get(A)
@@ -59,7 +86,7 @@ def RandomForest(S, attributes, label, depth=-1, variation="Entropy", weights=No
 
         if len(Sv) == 0:
             leaf = ID3.node()
-            leaf.setAttribute(ID3.mostCommonLabel(S, label))
+            leaf.setAttribute(ID3.mostCommonLabel(S, label, weights))
             root.append(value, leaf)
         else:
             attributeCopy = attributes.copy()
@@ -81,6 +108,19 @@ def useEnsemble(Ensemble, example):
         guess += vote * root.getExampleGuess(example)
     guess = guess/len(Ensemble)
     return 1 if guess >= 0 else -1
+    
+
+def useFullEnsemble(Ensemble, example):
+    guess = 0
+    i = 0
+    guesses = []
+    for vote, root in Ensemble:
+        guess += vote * root.getExampleGuess(example)
+        i+=1
+        interGuess = guess/i
+        guesses.append(1 if interGuess >= 0 else -1)
+    return guesses
+
 
 
 def numericBoolean(listToAdd, terms, index, sortedSet):
@@ -211,6 +251,8 @@ else:
     k = 2
 
 Ensemble = []
+figure1 = []
+figure1.append(['T', 'train error', 'test error'])
 
 for inc in range(T):
     bootstrapSamples = random.choices(exampleSet4, k=len(exampleSet4))
@@ -223,18 +265,22 @@ for inc in range(T):
         i += 1
     vote = 1/2 * math.log((1-err)/err)
     Ensemble.append((vote, root))
+    
+trainerrors = getErrorFullEnsemble(exampleSet4, Ensemble)
+testerrors = getErrorFullEnsemble(testData, Ensemble)
+for it in range(T):
+    figure1.append([it+1, trainerrors[it], testerrors[it]])
 
-successes = 0
-fails = 0
-i = 0
-for example in testData:
-    if example[len(example)-1] == useEnsemble(Ensemble, example):
-        successes += 1
-    else:
-        fails += 1
-    i += 1
+if k == 2: fileToWrite = 'figure1_RandomForest.csv'
+elif k == 4: fileToWrite = 'figure2_RandomForest.csv'
+elif k == 6: fileToWrite = 'figure3_RandomForest.csv'
+else: fileToWrite = str(k)+'.csv'
 
-print(f"Error Rate: {fails/(successes+fails)}")
+with open(fileToWrite, 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile, delimiter=',',
+                            quotechar='\'', quoting=csv.QUOTE_MINIMAL)
+    for row in figure1:
+        writer.writerow(row)
 
 end = time.time()
 print(f"Time to run {end - strt}")

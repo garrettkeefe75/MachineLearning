@@ -3,8 +3,36 @@ import math
 sys.path.insert(0, "..")
 import DecisionTree.ID3 as ID3
 import time
+import csv
 strt =time.time()
 
+
+def getError(data, Ensemble):
+    successes = 0
+    fails = 0
+    for example in data:
+        if example[len(example)-1] == useEnsemble(Ensemble, example):
+            successes += 1
+        else:
+            fails += 1
+    return fails/(successes+fails)
+
+def getErrorFullEnsemble(data, Ensemble):
+    helper = [(0,0)]*len(Ensemble)
+    allErrorForData = []
+    for example in data:
+        i = 0
+        for guess in useFullEnsemble(Ensemble, example):
+            successes, fails = helper[i]
+            if guess == example[len(example)-1]:
+                successes += 1
+            else:
+                fails += 1
+            helper[i] = (successes, fails)
+            i += 1
+    for successes, fails in helper:
+        allErrorForData.append(fails/(fails+successes))
+    return allErrorForData
 
 def restoreUnknown(listToAdd, terms, index, attr):
     if terms[index] == 'unknown':
@@ -19,6 +47,18 @@ def useEnsemble(Ensemble, example):
     if guess >= 0: guess = 1 
     else: guess = -1
     return guess
+
+def useFullEnsemble(Ensemble, example):
+    guess = 0
+    i = 0
+    guesses = []
+    for vote, root in Ensemble:
+        guess += vote * root.getExampleGuess(example)
+        i+=1
+        interGuess = guess/i
+        guesses.append(1 if interGuess >= 0 else -1)
+    return guesses
+
 
 
 def numericBoolean(listToAdd, terms, index, sortedSet):
@@ -137,6 +177,11 @@ if len(sys.argv) >= 2:
 else:
     T = 5
 Ensemble = []
+figure1 = []
+figure2 = []
+figure1.append(['T', 'train error', 'test error'])
+figure2.append(['T', 'train error', 'test error'])
+
 
 for inc in range(T):
     root = ID3.ID3(exampleSet4, attributes4, label4, 1, "Entropy", weights)
@@ -159,18 +204,26 @@ for inc in range(T):
     s = sum(weightCopy)
     weights = [float(w)/s for w in weightCopy]
     Ensemble.append((vote, root))
+    figure2.append([inc+1, getError(exampleSet4, [(vote, root)]), getError(testData, [(vote, root)])])
 
-successes = 0
-fails = 0
-i = 0
-for example in testData:
-    if example[len(example)-1] == useEnsemble(Ensemble, example):
-        successes += 1
-    else:
-        fails += 1
-    i += 1
+trainerrors = getErrorFullEnsemble(exampleSet4, Ensemble)
+testerrors = getErrorFullEnsemble(testData, Ensemble)
+for it in range(T):
+    figure1.append([it+1, trainerrors[it], testerrors[it]])
 
-print(f"Error Rate: {fails/(successes+fails)}")
+
+with open('figure1_Adaboost.csv', 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile, delimiter=',',
+                            quotechar='\'', quoting=csv.QUOTE_MINIMAL)
+    for row in figure1:
+        writer.writerow(row)
+
+with open('figure2_Adaboost.csv', 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile, delimiter=',',
+                            quotechar='\'', quoting=csv.QUOTE_MINIMAL)
+    for row in figure2:
+        writer.writerow(row)
+
 
 end = time.time()
 #root = ID3.ID3(exampleSet4, attributes4, label4, 2, "Entropy")

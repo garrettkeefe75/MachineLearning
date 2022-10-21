@@ -1,5 +1,6 @@
 from numpy.linalg import norm
 import numpy as np
+import csv
 
 def costFunc(weights, data):
     sum = 0
@@ -34,8 +35,12 @@ weights = np.zeros(7)
 prevWeights = None
 toleranceLevel = 10e-6
 lr = 0.015
+it = 0
+figure1 = []
+figure1.append(['steps', 'cost func'])
 
 while True:
+    it += 1
     prevWeights = weights
     sum = np.zeros(7)
     for example in trainData:
@@ -45,8 +50,11 @@ while True:
         sum += thing * subset
     gradient = -sum
     weights = weights - lr*gradient
-    print(costFunc(weights, trainData))
-
-    #if True: break
+    figure1.append([it, costFunc(weights, trainData)])
     if norm((weights - prevWeights)) < toleranceLevel: break
-print(weights)
+print(f"weights: {weights}  learning rate: {lr}  Test cost func: {costFunc(weights, testData)}")
+with open('figure1_Batch.csv', 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile, delimiter=',',
+                            quotechar='\'', quoting=csv.QUOTE_MINIMAL)
+    for row in figure1:
+        writer.writerow(row)
