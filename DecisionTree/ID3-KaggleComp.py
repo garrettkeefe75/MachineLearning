@@ -1,6 +1,81 @@
+import sys
+import math
+import random
+sys.path.insert(0, "..")
 import ID3
 from collections import Counter
 import csv
+
+def RandomForest(S, attributes, label, depth=-1, variation="Entropy", weights=None, subsetSize=2):
+    if weights == None:
+        weights = [1/len(S)]*len(S)
+    root = ID3.node()
+    testLabel = S[0][len(S[0])-1]
+    allLabelsSame = True
+    for example in S:
+        if example[len(example)-1] != testLabel:
+            allLabelsSame = False
+            break
+
+    if allLabelsSame:
+        root.setAttribute(testLabel)
+        return root
+    
+    if depth == 0:
+        root.setAttribute(ID3.mostCommonLabel(S, label, weights))
+        return root
+
+    if len(attributes) >= subsetSize:
+        attributesSubset = dict(random.sample(list(attributes.items()), subsetSize))
+    else:
+        attributesSubset = attributes
+    bestInfoGain = 0
+    A = None
+    for key in attributesSubset.keys():
+        index, values = attributesSubset.get(key)
+        infoGain = ID3.IG(S, (index, values), label, variation, weights)
+        #print(f"{key} : {infoGain}")
+        if infoGain > bestInfoGain:
+            bestInfoGain = infoGain
+            A = key
+    
+    if A == None:
+        root.setAttribute(ID3.mostCommonLabel(S, label, weights))
+        return root
+
+    attrIndex, values = attributes.get(A)
+    root.setAttribute(A, attrIndex)
+    for value in values:
+        Sv = []
+        SvWc = []
+        i = 0
+
+        for example in S:
+            if example[attrIndex] == value:
+                Sv.append(example)
+                SvWc.append(weights[i])
+            i += 1
+        SvW = []
+        for weight in SvWc:
+            SvW.append(weight * len(weights)/len(Sv))
+
+        if len(Sv) == 0:
+            leaf = ID3.node()
+            leaf.setAttribute(ID3.mostCommonLabel(S, label, weights))
+            root.append(value, leaf)
+        else:
+            attributeCopy = attributes.copy()
+            del attributeCopy[A]
+            root.append(value, RandomForest(Sv, attributeCopy, label, depth-1, variation, SvW, subsetSize))
+    
+    return root
+
+def useEnsemble(Ensemble, example):
+    guess = 0
+    for vote, root in Ensemble:
+        guess += vote * root.getExampleGuess(example)
+    guess = guess/len(Ensemble)
+    return guess
  
 def most_frequent(List):
     occurence_count = Counter(List)
@@ -128,6 +203,22 @@ with open('./income2022f/test_final.csv', 'r') as f:
         restoreUnknown(listToAdd, terms, 14, mostCommonCountry)
         testData.append(listToAdd)
 
+
+Ensemble = []
+weights = [1/len(exampleSet)]*len(exampleSet)
+k = 4
+for inc in range(500):
+    bootstrapSamples = random.choices(exampleSet, k=len(exampleSet))
+    root = RandomForest(bootstrapSamples, attributes, label, -1, "Entropy", weights, k)
+    err = 0
+    i = 0
+    for example in exampleSet:
+        if root.getExampleGuess(example) != example[len(example)-1]:
+            err += weights[i]
+        i += 1
+    vote = 1/2 * math.log((1-err)/err)
+    Ensemble.append((vote, root))
+
 # for i in range(13):
 #     root = ID3.ID3(exampleSet, attributes, label, i, "Entropy")
 #     successes = 0
@@ -140,11 +231,11 @@ with open('./income2022f/test_final.csv', 'r') as f:
 #     print(f"Depth: {i+1} Error Rate: {fails/(successes+fails)}")
 
 # root = ID3.ID3(exampleSet, attributes, label, 5)
-# answers = []
-# i = 1
-# for example in testData:
-#     answers.append([i, root.getExampleGuess(example)])
-#     i += 1
+answers = []
+i = 1
+for example in testData:
+    answers.append([i, useEnsemble(Ensemble,example)])
+    i += 1
 # successes = 0
 # fails = 0
 # for example in exampleSet:
@@ -154,9 +245,9 @@ with open('./income2022f/test_final.csv', 'r') as f:
 #         fails += 1
 # print(f"Depth: 2 Error Rate: {fails/(successes+fails)}")
 
-# with open('submission6-ID3depth5.csv', 'w', newline='') as csvfile:
-#     writer = csv.writer(csvfile, delimiter=',',
-#                             quotechar='\'', quoting=csv.QUOTE_MINIMAL)
-#     writer.writerow(['ID','Prediction'])
-#     for row in answers:
-#         writer.writerow(row)
+with open('submission12-RandomForests.csv', 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile, delimiter=',',
+                            quotechar='\'', quoting=csv.QUOTE_MINIMAL)
+    writer.writerow(['ID','Prediction'])
+    for row in answers:
+        writer.writerow(row)
