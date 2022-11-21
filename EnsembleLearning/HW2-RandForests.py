@@ -53,7 +53,10 @@ def RandomForest(S, attributes, label, depth=-1, variation="Entropy", weights=No
         root.setAttribute(ID3.mostCommonLabel(S, label, weights))
         return root
 
-    attributesSubset = dict(random.sample(list(attributes4.items()), subsetSize))
+    if len(attributes) > subsetSize:
+        attributesSubset = dict(random.sample(list(attributes.items()), subsetSize))
+    else:
+        attributesSubset = attributes
     bestInfoGain = 0
     A = None
     for key in attributesSubset.keys():
