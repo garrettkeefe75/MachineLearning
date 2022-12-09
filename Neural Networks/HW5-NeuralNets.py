@@ -3,36 +3,7 @@ from random import shuffle
 from sys import argv
 
 
-
-def lossFunction(y, yprime):
-    return (1/2)*(y-yprime) ^ 2
-
-
 class NeuralNetwork:
-
-    def __init__(self) -> None:
-        self.weights = None
-        self.layers = []
-
-    def addLayer(self, layer):
-        self.layers.append(layer)
-
-    def predict(self, input):
-        for layer in self.layers:
-            input = layer.forward_propagation(input)
-        return 1 if input >= 0.5 else 0
-
-    def lossPrime(self, y, yprime):
-        return y-yprime
-
-    def backProp(self, example, learning_rate):
-        output = example[0]
-        for layer in self.layers:
-            output = layer.forward_propagation(output)
-        # backward propagation
-        error = self.lossPrime(output, example[1])
-        for layer in reversed(self.layers):
-            error = layer.backward_propagation(error, learning_rate)
 
     class Layer:
         def sig(self, x):
@@ -79,6 +50,40 @@ class NeuralNetwork:
             self.weights -= learning_rate * weights_error
             self.bias -= learning_rate * output_error
             return input_error
+    
+    def __init__(self, numLayers = 0, sizeOfInput = 0, numberOfNodes = 0) -> None:
+        self.weights = None
+        self.layers = []
+        if numLayers != 0:
+            self.layers.append(NeuralNetwork.Layer(sizeOfInput, numberOfNodes))
+        for i in range(numLayers-2):
+            self.layers.append(NeuralNetwork.Layer(numberOfNodes, numberOfNodes))
+        if numLayers != 0:
+            self.layers.append(NeuralNetwork.FinalLayer(numberOfNodes, 1))
+
+    def addLayer(self, layer):
+        self.layers.append(layer)
+
+    def predict(self, input):
+        for layer in self.layers:
+            input = layer.forward_propagation(input)
+        return 1 if input >= 0.5 else 0
+    
+    def lossFunction(self, y, yprime):
+        return (1/2)*(y-yprime)**2
+
+    def lossPrime(self, y, yprime):
+        return y-yprime
+
+    def backProp(self, example, learning_rate):
+        output = example[0]
+        for layer in self.layers:
+            output = layer.forward_propagation(output)
+        # backward propagation
+        #print(self.lossFunction(output, example[1]))
+        error = self.lossPrime(output, example[1])
+        for layer in reversed(self.layers):
+            error = layer.backward_propagation(error, learning_rate)
 
 def getErrorRate(NN, testData):
     successes = 0
@@ -108,35 +113,7 @@ with open('../Perceptron/bank-note/bank-note/test.csv', 'r') as f:
         terms = line.strip().split(',')
         for i in range(4):
             listToAdd.append(float(terms[i]))
-        testData.append((np.array(listToAdd), (1 if float(terms[4]) != 0 else 0)))
-
-
-
-# def backpropogation(weights, input, gamma):
-#     #input is a pair with (data, label)
-
-#     #forward propogation
-#     weightUpdates = []
-#     y = input[1]
-#     input = input[0]
-#     inputs = []
-#     inputs.append(np.reshape(input, (-1,1)))
-#     for weight in weights:
-#         input = np.dot(input, weight)
-#         if len(input) > 1:
-#             inputs.append(np.reshape(input, (-1,1)))
-#             input = sig(input)
-
-
-#     error = lossFunctionPrime(y, input[0])
-
-
-#     for it in reversed(range(len(weights))):
-#         weighterror = np.dot(sig(inputs[it]), error)
-#         error = np.multiply(np.dot(error, weights[it].T), sigPrime(inputs[it]).T)
-#         weights[it] -= gamma* weighterror
-#     return weightUpdates
-
+        testData.append((np.array([listToAdd]), (1 if float(terms[4]) != 0 else 0)))
 
 if len(argv) > 1:
     numberOfNodes = int(argv[1])
@@ -144,22 +121,31 @@ if len(argv) > 1:
 else:
     print("No user input, default is 5 Neurons per layer.")
     numberOfNodes = 5
-def SGD(S, T = 100, gamma = 0.1):
-    nn = NeuralNetwork()
-    
-    nn.addLayer(NeuralNetwork.Layer(4, numberOfNodes))
-    nn.addLayer(NeuralNetwork.Layer(numberOfNodes, numberOfNodes))
-    nn.addLayer(NeuralNetwork.Layer(numberOfNodes, 1))
+
+def SGD(S, numberOfNodes, T, gamma = 0.1, d = 0.085):
+    nn = NeuralNetwork(3,4,numberOfNodes)
 
     for i in range(T):
-        gammat = gamma/(1+(gamma/0.085)*i)
+        gammat = gamma/(1+(gamma/d)*i)
         shuffle(S)
         for input in S:
+            #found example that did weight updates during back propagation, decided that made more sense.
             nn.backProp(input, gammat)
 
     return nn
 
-NN = SGD(trainData)
+if len(argv) > 2:
+    T = int(argv[2])
+    print(f"Using {T} epochs.")
+else:
+    T = 100
+    print("Using 100 epochs.")
+
+NN = NeuralNetwork(3, 4, 5)
+NN.backProp(trainData[0], 0.01)
+
+
+NN = SGD(trainData, numberOfNodes, T)
 
 print(f"Train Error {getErrorRate(NN, trainData)}")
 print(f"Test Error {getErrorRate(NN, testData)}")
