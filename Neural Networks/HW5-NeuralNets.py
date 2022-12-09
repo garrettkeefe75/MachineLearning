@@ -1,6 +1,7 @@
 import numpy as np
-# from numpy.linalg import norm
 from random import shuffle
+from sys import argv
+
 
 
 def lossFunction(y, yprime):
@@ -137,8 +138,12 @@ with open('../Perceptron/bank-note/bank-note/test.csv', 'r') as f:
 #     return weightUpdates
 
 
-
-numberOfNodes = 5
+if len(argv) > 1:
+    numberOfNodes = int(argv[1])
+    print(f"User input received, using {numberOfNodes} Neurons per layer.")
+else:
+    print("No user input, default is 5 Neurons per layer.")
+    numberOfNodes = 5
 def SGD(S, T = 100, gamma = 0.1):
     nn = NeuralNetwork()
     
