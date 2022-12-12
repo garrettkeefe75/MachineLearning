@@ -54,13 +54,17 @@ class NeuralNetwork:
             return input_error
     
     def __init__(self, numLayers = 0, sizeOfInput = 0, numberOfNodes = 0) -> None:
+        if numLayers > 0 and (sizeOfInput <= 0 or numberOfNodes <= 0):
+            print("Cannot make a Neural Net with no input or a defined hidden layer size.\n \
+Please try again with non negative integers for the second and third parameters.")
+            return
         self.weights = None
         self.layers = []
-        if numLayers != 0:
+        if numLayers > 0:
             self.layers.append(NeuralNetwork.Layer(sizeOfInput, numberOfNodes))
         for i in range(numLayers-2):
             self.layers.append(NeuralNetwork.Layer(numberOfNodes, numberOfNodes))
-        if numLayers != 0:
+        if numLayers > 0:
             self.layers.append(NeuralNetwork.FinalLayer(numberOfNodes, 1))
 
     def addLayer(self, layer):
@@ -86,16 +90,24 @@ class NeuralNetwork:
         error = self.lossPrime(output, example[1])
         for layer in reversed(self.layers):
             error = layer.backward_propagation(error, learning_rate)
+    
+    def getErrorRate(self, testData):
+        successes = 0
+        fails = 0
+        for test, y in testData:
+            if self.predict(test) == y:
+                successes += 1
+            else:
+                fails += 1
+        return fails/(successes+fails)
 
-def getErrorRate(NN, testData):
-    successes = 0
-    fails = 0
-    for test, y in testData:
-        if NN.predict(test) == y:
-            successes += 1
-        else:
-            fails += 1
-    return fails/(successes+fails)
+    def SGD(self, S, T, gamma = 0.1, d = 0.085):
+        for i in range(T):
+            gammat = gamma/(1+(gamma/d)*i)
+            shuffle(S)
+            for input in S:
+                #found example that did weight updates during back propagation, decided that made more sense.
+                self.backProp(input, gammat)
 
 trainData = []
 
@@ -124,18 +136,6 @@ else:
     print("No user input, default is 5 Neurons per layer.")
     numberOfNodes = 5
 
-def SGD(S, numberOfNodes, T, gamma = 0.1, d = 0.085):
-    nn = NeuralNetwork(3,4,numberOfNodes)
-
-    for i in range(T):
-        gammat = gamma/(1+(gamma/d)*i)
-        shuffle(S)
-        for input in S:
-            #found example that did weight updates during back propagation, decided that made more sense.
-            nn.backProp(input, gammat)
-
-    return nn
-
 if len(argv) > 2:
     T = int(argv[2])
     print(f"Using {T} epochs.")
@@ -146,9 +146,9 @@ else:
 # NN = NeuralNetwork(3, 4, 5)
 # NN.backProp(trainData[0], 0.01)
 
+NN = NeuralNetwork(3,4,numberOfNodes)
+NN.SGD(trainData, T)
 
-NN = SGD(trainData, numberOfNodes, T)
-
-print(f"Train Error {getErrorRate(NN, trainData)}")
-print(f"Test Error {getErrorRate(NN, testData)}")
+print(f"Train Error {NN.getErrorRate(trainData)}")
+print(f"Test Error {NN.getErrorRate(testData)}")
 
