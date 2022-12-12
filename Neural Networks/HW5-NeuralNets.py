@@ -30,6 +30,7 @@ class NeuralNetwork:
             # dBias = output_error
 
             # update parameters
+            #print(weights_error)
             self.weights -= learning_rate * weights_error
             self.bias -= learning_rate * output_error
             return input_error
@@ -47,6 +48,7 @@ class NeuralNetwork:
             # dBias = output_error
 
             # update parameters
+            #print(weights_error)
             self.weights -= learning_rate * weights_error
             self.bias -= learning_rate * output_error
             return input_error
@@ -141,8 +143,8 @@ else:
     T = 100
     print("Using 100 epochs.")
 
-NN = NeuralNetwork(3, 4, 5)
-NN.backProp(trainData[0], 0.01)
+# NN = NeuralNetwork(3, 4, 5)
+# NN.backProp(trainData[0], 0.01)
 
 
 NN = SGD(trainData, numberOfNodes, T)
