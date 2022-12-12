@@ -101,9 +101,9 @@ Please try again with non negative integers for the second and third parameters.
                 fails += 1
         return fails/(successes+fails)
 
-    def SGD(self, S, T, gamma = 0.1, d = 0.085):
-        for i in range(T):
-            gammat = gamma/(1+(gamma/d)*i)
+    def SGD(self, S, epochs, gamma = 0.1, d = 0.085):
+        for t in range(epochs):
+            gammat = gamma/(1+(gamma/d)*t)
             shuffle(S)
             for input in S:
                 #found example that did weight updates during back propagation, decided that made more sense.
@@ -145,8 +145,7 @@ else:
 
 # NN = NeuralNetwork(3, 4, 5)
 # NN.backProp(trainData[0], 0.01)
-
-NN = NeuralNetwork(3,4,numberOfNodes)
+NN = NeuralNetwork(3,len(trainData[0][0][0]),numberOfNodes)
 NN.SGD(trainData, T)
 
 print(f"Train Error {NN.getErrorRate(trainData)}")
