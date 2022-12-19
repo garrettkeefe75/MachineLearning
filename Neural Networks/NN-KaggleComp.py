@@ -12,50 +12,100 @@ columnValues = {}
 
 df = pd.read_csv('../DecisionTree/income2022f/train_final.csv')
 
-# column = df["workclass"]
-# for value in column.unique():
-#     columnValues[value] = [0] * len(column)
-# for i in range(len(column)):
-#     columnValues[column[i]][i] = 1
- 
-# print(columnValues.keys())
+column = df["workclass"]
+for value in column.unique():
+    columnValues[value] = [0] * len(column)
+for i in range(len(column)):
+    columnValues[column[i]][i] = 1
 
 
-
-label = le.fit_transform(df['workclass'])
 df.drop("workclass", axis=1, inplace=True)
-df["workclass"] = label
+for newColumn in columnValues.keys():
+    df[newColumn] = columnValues[newColumn]
+columnValues = {}
 
-label = le.fit_transform(df['education'])
+column = df["education"]
+for value in column.unique():
+    columnValues[value] = [0] * len(column)
+for i in range(len(column)):
+    columnValues[column[i]][i] = 1
+
+
 df.drop("education", axis=1, inplace=True)
-df["education"] = label
+for newColumn in columnValues.keys():
+    df[newColumn] = columnValues[newColumn]
+columnValues = {}
 
-label = le.fit_transform(df['marital.status'])
+column = df["marital.status"]
+for value in column.unique():
+    columnValues[value] = [0] * len(column)
+for i in range(len(column)):
+    columnValues[column[i]][i] = 1
+
+
 df.drop("marital.status", axis=1, inplace=True)
-df["marital.status"] = label
+for newColumn in columnValues.keys():
+    df[newColumn] = columnValues[newColumn]
+columnValues = {}
 
-label = le.fit_transform(df['occupation'])
+column = df["occupation"]
+for value in column.unique():
+    columnValues[value] = [0] * len(column)
+for i in range(len(column)):
+    columnValues[column[i]][i] = 1
+
+
 df.drop("occupation", axis=1, inplace=True)
-df["occupation"] = label
+for newColumn in columnValues.keys():
+    df[newColumn] = columnValues[newColumn]
+columnValues = {}
 
-label = le.fit_transform(df['relationship'])
+column = df["relationship"]
+for value in column.unique():
+    columnValues[value] = [0] * len(column)
+for i in range(len(column)):
+    columnValues[column[i]][i] = 1
+
+
 df.drop("relationship", axis=1, inplace=True)
-df["relationship"] = label
+for newColumn in columnValues.keys():
+    df[newColumn] = columnValues[newColumn]
+columnValues = {}
 
-label = le.fit_transform(df['race'])
+column = df["race"]
+for value in column.unique():
+    columnValues[value] = [0] * len(column)
+for i in range(len(column)):
+    columnValues[column[i]][i] = 1
+
+
 df.drop("race", axis=1, inplace=True)
-df["race"] = label
+for newColumn in columnValues.keys():
+    df[newColumn] = columnValues[newColumn]
+columnValues = {}
 
 sexlabel = le.fit_transform(df['sex'])
 df.drop("sex", axis=1, inplace=True)
 
 
-label = le.fit_transform(df['native.country'])
+column = df["native.country"]
+columnValues["Holand-Netherlands"] = [0] * len(column)
+for value in column.unique():
+    columnValues[value] = [0] * len(column)
+for i in range(len(column)):
+    columnValues[column[i]][i] = 1
+
+
 df.drop("native.country", axis=1, inplace=True)
-df["native.country"] = label
+for newColumn in columnValues.keys():
+    df[newColumn] = columnValues[newColumn]
+columnValues = {}
+
+df.drop("?", axis=1, inplace=True)
 
 y_train = df["income>50K"].to_numpy()
 df.drop("income>50K", axis=1, inplace=True)
+df.sort_index(axis=1, inplace=True)
 scaler = pp.MinMaxScaler(feature_range=(-1, 1))
 scaler.fit(df)
 names = df.columns
@@ -69,38 +119,98 @@ for i in range(len(x_train)):
 
 df = pd.read_csv('../DecisionTree/income2022f/test_final.csv')
 
-label = le.fit_transform(df['workclass'])
+column = df["workclass"]
+for value in column.unique():
+    columnValues[value] = [0] * len(column)
+for i in range(len(column)):
+    columnValues[column[i]][i] = 1
+
+
 df.drop("workclass", axis=1, inplace=True)
-df["workclass"] = label
+for newColumn in columnValues.keys():
+    df[newColumn] = columnValues[newColumn]
+columnValues = {}
 
-label = le.fit_transform(df['education'])
+column = df["education"]
+for value in column.unique():
+    columnValues[value] = [0] * len(column)
+for i in range(len(column)):
+    columnValues[column[i]][i] = 1
+
+
 df.drop("education", axis=1, inplace=True)
-df["education"] = label
+for newColumn in columnValues.keys():
+    df[newColumn] = columnValues[newColumn]
+columnValues = {}
 
-label = le.fit_transform(df['marital.status'])
+column = df["marital.status"]
+for value in column.unique():
+    columnValues[value] = [0] * len(column)
+for i in range(len(column)):
+    columnValues[column[i]][i] = 1
+
+
 df.drop("marital.status", axis=1, inplace=True)
-df["marital.status"] = label
+for newColumn in columnValues.keys():
+    df[newColumn] = columnValues[newColumn]
+columnValues = {}
 
-label = le.fit_transform(df['occupation'])
+column = df["occupation"]
+for value in column.unique():
+    columnValues[value] = [0] * len(column)
+for i in range(len(column)):
+    columnValues[column[i]][i] = 1
+
+
 df.drop("occupation", axis=1, inplace=True)
-df["occupation"] = label
+for newColumn in columnValues.keys():
+    df[newColumn] = columnValues[newColumn]
+columnValues = {}
 
-label = le.fit_transform(df['relationship'])
+column = df["relationship"]
+for value in column.unique():
+    columnValues[value] = [0] * len(column)
+for i in range(len(column)):
+    columnValues[column[i]][i] = 1
+
+
 df.drop("relationship", axis=1, inplace=True)
-df["relationship"] = label
+for newColumn in columnValues.keys():
+    df[newColumn] = columnValues[newColumn]
+columnValues = {}
 
-label = le.fit_transform(df['race'])
+column = df["race"]
+for value in column.unique():
+    columnValues[value] = [0] * len(column)
+for i in range(len(column)):
+    columnValues[column[i]][i] = 1
+
+
 df.drop("race", axis=1, inplace=True)
-df["race"] = label
+for newColumn in columnValues.keys():
+    df[newColumn] = columnValues[newColumn]
+columnValues = {}
 
 sexlabel = le.fit_transform(df['sex'])
 df.drop("sex", axis=1, inplace=True)
 
-label = le.fit_transform(df['native.country'])
+
+column = df["native.country"]
+for value in column.unique():
+    columnValues[value] = [0] * len(column)
+for i in range(len(column)):
+    columnValues[column[i]][i] = 1
+
+
 df.drop("native.country", axis=1, inplace=True)
-df["native.country"] = label
+for newColumn in columnValues.keys():
+    df[newColumn] = columnValues[newColumn]
+columnValues = {}
 
 df.drop("ID", axis=1, inplace=True)
+df.drop("?", axis=1, inplace=True)
+df.sort_index(axis=1, inplace=True)
+
 
 names = df.columns
 d = scaler.transform(df)
@@ -113,7 +223,7 @@ for i in range(len(x_test)):
 
 # clf = MLPClassifier(random_state=1, max_iter=1000000, activation='tanh')
 # clf.fit(x_train, y_train)
-NN = NeuralNetwork(len(trainData[0][0][0]), 3, 35)
+NN = NeuralNetwork(len(trainData[0][0][0]), 3, 69)
 
 # for i in range(25):
 #     NN.SGD(trainData[:1000], 50)
@@ -132,7 +242,7 @@ for test in testData:
 # for i in range(len(arrayOfAnswers)):
 #     answers.append([i+1, arrayOfAnswers[i]])
 
-with open('submission22-NeuralNetworks.csv', 'w', newline='') as csvfile:
+with open('submission25-NeuralNetworks.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter=',',
                             quotechar='\'', quoting=csv.QUOTE_MINIMAL)
     writer.writerow(['ID','Prediction'])
