@@ -2,7 +2,13 @@ from NeuralNetwork import NeuralNetwork
 import numpy as np
 import pandas as pd
 from sklearn import preprocessing as pp # I am a child
-from sklearn.neural_network import MLPClassifier
+#from sklearn.neural_network import MLPClassifier
+from tensorflow.python.keras.models import Sequential
+from tensorflow.python.keras.layers import Dense
+from scikeras.wrappers import KerasClassifier
+# from sklearn.model_selection import cross_val_score
+# from sklearn.model_selection import StratifiedKFold
+# from sklearn.pipeline import Pipeline
 
 from random import shuffle
 import csv
@@ -111,28 +117,45 @@ testData = []
 for i in range(len(x_test)):
     testData.append(np.reshape(x_test[i],(1,-1)))
 
-# clf = MLPClassifier(random_state=1, max_iter=1000000, activation='tanh')
-# clf.fit(x_train, y_train)
-NN = NeuralNetwork(len(trainData[0][0][0]), 3, 35)
+# # clf = MLPClassifier(random_state=1, max_iter=1000000, activation='tanh')
+# # clf.fit(x_train, y_train)
+# NN = NeuralNetwork(len(trainData[0][0][0]), 3, 35)
 
-# for i in range(25):
-#     NN.SGD(trainData[:1000], 50)
-#     shuffle(trainData)
-NN.SGD(trainData, 250)
+# # for i in range(25):
+# #     NN.SGD(trainData[:1000], 50)
+# #     shuffle(trainData)
+# NN.SGD(trainData, 250)
 
-answers = []
-print(f"Train Error: {NN.getErrorRate(trainData)}")
+# answers = []
+# print(f"Train Error: {NN.getErrorRate(trainData)}")
 
-i = 1
-for test in testData:
-    answers.append([i, NN.predictNonBinary(test)])
-    i +=1
+# i = 1
+# for test in testData:
+#     answers.append([i, NN.predictNonBinary(test)])
+#     i +=1
 
 # arrayOfAnswers = clf.predict(x_test)
 # for i in range(len(arrayOfAnswers)):
 #     answers.append([i+1, arrayOfAnswers[i]])
-
-with open('submission22-NeuralNetworks.csv', 'w', newline='') as csvfile:
+def create_larger():
+ # create model
+ model = Sequential()
+ model.add(Dense(30, input_shape=(14,), activation='tanh'))
+ model.add(Dense(15, activation='tanh'))
+ model.add(Dense(1))
+ # Compile model
+ model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+ return model
+#model = KerasClassifier(model=create_larger, epochs=150, batch_size=15, verbose=0)
+model = create_larger()
+model.fit(x_train, y_train, epochs=100, batch_size=5, shuffle=True)
+loss, accuracy = model.evaluate(x_train, y_train)
+print("\nLoss: %.2f, Accuracy: %.2f%%" % (loss, accuracy*100))
+answers = []
+arrayOfAnswers = model.predict(x_test)
+for i in range(len(arrayOfAnswers)):
+    answers.append([i+1, arrayOfAnswers[i][0]])
+with open('submission30-NeuralNetworks.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter=',',
                             quotechar='\'', quoting=csv.QUOTE_MINIMAL)
     writer.writerow(['ID','Prediction'])
