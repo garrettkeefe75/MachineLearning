@@ -27,12 +27,12 @@ class NeuralNetwork:
             self.input.append(input_data)
             temp = np.dot(input_data, self.weights) + self.bias
             self.input2.append(temp)
-            self.output = self.tanh(temp)
+            self.output = self.sig(temp)
             return self.output
 
         # computes dE/dW, dE/dB for a given output_error=dE/dY. Returns input_error=dE/dX.
         def backward_propagation(self, output_error, learning_rate):
-            output_error = self.tanhPrime(self.input2.pop()) * output_error
+            output_error = self.sigPrime(self.input2.pop()) * output_error
             input_error = np.dot(output_error, self.weights.T)
             weights_error = np.dot(self.input.pop().T, output_error)
             # dBias = output_error
